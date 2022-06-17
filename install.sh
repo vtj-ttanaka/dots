@@ -2,11 +2,11 @@
 
 if [[ "${0##*/}" != 'install.sh' ]]; then
     if [[ -d $HOME/.dots ]]; then
-        mv "$HOME/.dots{,.old}"
+        mv "$HOME/.dots" "$HOME/.dots.old"
     fi
-    install -dm700 "$HOME/.dots"
     curl -SsfLo /tmp/dots.zip https://github.com/vtj-ttanaka/dots/archive/refs/heads/develop.zip
-    unzip /tmp/dots.zip -d "$HOME/.dots"
+    unzip -o /tmp/dots.zip -d /tmp
+    mv /tmp/dots-develop "$HOME/.dots"
     exec "$HOME/.dots/install.sh"
 fi
 
