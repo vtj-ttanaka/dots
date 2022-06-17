@@ -2,11 +2,26 @@
   "")
 
 (custom-set-variables
- '(menu-bar-mode nil)
- '(mode-line-format nil)
- '(scroll-bar-mode nil)
- '(tool-bar-mode nil)
- '(viper-mode nil))
+ '(header-line-format
+   '("%l,%C  "
+     (:eval
+      (cond
+       ((not (buffer-file-name))
+        (buffer-name))
+       (buffer-read-only
+        (propertize buffer-file-truename 'face 'italic))
+       ((buffer-modified-p)
+        (propertize buffer-file-truename 'face 'bold))
+       (t
+        buffer-file-truename)))
+     skk-modeline-input-mode
+     (:eval
+      (propertize " " 'display `(space :align-to (- right ,(length mode-name)))))
+     mode-name))
+  '(menu-bar-mode nil)
+  '(mode-line-format nil)
+  '(scroll-bar-mode nil)
+  '(tool-bar-mode nil))
 
 (custom-theme-set-faces
  'anticolor

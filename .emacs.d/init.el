@@ -1,8 +1,8 @@
 (setq default-directory "~/"
       command-line-default-directory "~"
       exec-path (mapcar
-		 'expand-file-name
-		 (parse-colon-path (concat "~/bin:~/.local/bin:~/.anyenv/envs/tfenv/bin:/usr/local/bin:/usr/local/sbin:" (getenv "PATH"))))
+                 'expand-file-name
+                 (parse-colon-path (concat "~/bin:~/.local/bin:~/.anyenv/envs/tfenv/bin:/usr/local/bin:/usr/local/sbin:" (getenv "PATH"))))
       scratch-buffer-file (locate-user-emacs-file "scratch"))
 
 (add-hook
@@ -118,9 +118,10 @@
     :ensure t
     :hook (after-init-hook . company-statistics-mode))
   (leaf company-c-headers :ensure t :config (add-to-list 'company-backends 'company-c-headers))
-  (leaf company-shell :ensure t :config (add-to-list 'company-backends 'company-hell))
+  (leaf company-shell :ensure t :config (add-to-list 'company-backends 'company-shell))
   (leaf company-terraform :ensure t :config (add-to-list 'company-backends 'company-terraform))
-  (leaf company-web :ensure t :config (add-to-list 'company-backends 'company-web)))
+  ;;(leaf company-web :ensure t :config (add-to-list 'company-backends 'company-web))
+  )
 
 (leaf dockerfile-mode :ensure t)
 
@@ -207,6 +208,7 @@
   (whitespace-action . '(auto-cleanup)))
 
 (leaf xclip
+  :if (executable-find "xclip")
   :ensure t
   :hook (after-init-hook . xclip-mode))
 
