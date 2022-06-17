@@ -11,7 +11,7 @@ if [[ "${0##*/}" != 'install.sh' ]]; then
 fi
 
 srcdir="${0%/*}"
-IFS= set -- $(find "$srcdir" -path "$srcdir/.git" -prune -o ! -wholename "$0" -o ! -wholename "$srcdir/README.md" -type f -printf '%P\n')
+IFS= set -- $(find "$srcdir" -path "$srcdir/.git" -prune -o ! -wholename "$0" -type f -printf '%P\n')
 
 while (( $# )); do
     src=$(realpath -L --relative-to=$HOME "$srcdir/$1")
