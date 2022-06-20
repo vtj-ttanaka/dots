@@ -163,17 +163,15 @@
 
 (leaf open-junk-file
   :ensure t
-  :hook (kill-emacs-hook . open-junk-file/delete-all)
+  :hook (kill-emacs-hook . open-junk-file/delete)
   :bind ("C-c j" . open-junk-file)
   :init
-  (setq open-junk-file-dir (locate-user-emacs-file "junk/")
-        open-junk-file-format (concat open-junk-file-dir "%s."))
-  (defun open-junk-file/delete-all ()
+  (setq open-junk-file-directory (locate-user-emacs-file "junk/")
+        open-junk-file-format (concat open-junk-file-directory "%s."))
+  (defun open-junk-file/delete ()
     (interactive)
-    (unless (file-directory-p open-junk-file-dir)
-      (make-directory open-junk-file-dir))
-    (mapcar `(lambda (x) (delete-file x))
-            (directory-files open-junk-file-dir t directory-files-no-dot-files-regexp))))
+    (when (file-directory-p open-junk-file-directory)
+      (delete-directory open-junk-file-directory))))
 
 (leaf popwin
   :ensure t
