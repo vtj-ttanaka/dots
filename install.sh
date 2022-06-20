@@ -11,12 +11,13 @@ if [[ "${0##*/}" != 'install.sh' ]]; then
 fi
 
 srcdir="${0%/*}"
-IFS= set -- $(find "$srcdir" -path "$srcdir/.git" -prune -o ! -wholename "$0" -a ! -wholename "$srcdir/README.md" -type f -printf '%P\n')
+IFS=$'\n' set -- $(find "$srcdir" -path "$srcdir/.git" -prune -o ! -wholename "$0" -a ! -wholename "$srcdir/README.md" -type f -printf '%P\n')
 
 while (( $# )); do
-    src=$(realpath -L --relative-to=$HOME "$srcdir/$1")
     dest="$HOME/$1"
-    install -Ddvm755 "${dest%/*}"
+    destdir="${dest%/*}"
+    src=$(realpath -L --relative-to="$destdir" "$srcdir/$1")
+    install -Ddvm755 "$destdir"
     ln -sfv "$src" "$dest"
     shift
 done
