@@ -10,14 +10,22 @@ if [[ "${0##*/}" != 'install.sh' ]]; then
     exec "$HOME/.dots/install.sh"
 fi
 
-srcdir="${0%/*}"
-IFS=$'\n' set -- $(find "$srcdir" -path "$srcdir/.git" -prune -o ! -wholename "$0" -a ! -wholename "$srcdir/README.md" -type f -printf '%P\n')
+dotsroot="${0%/*}"
+IFS=$'\n' set -- $(find "$dotsroot" -path "$dotsroot/.git" -prune -o ! -wholename "$0" -a ! -wholename "$dotsroot/README.md" -type f -printf '%P\n')
 
 while (( $# )); do
     dest="$HOME/$1"
     destdir="${dest%/*}"
-    src=$(realpath -L --relative-to="$destdir" "$srcdir/$1")
-    install -Ddvm755 "$destdir"
-    ln -sfv "$src" "$dest"
+
+    src="$dotsroot/$1"
+    srcdir="${src%/*}"
+
+    perm=$(stat -c %a "$srcdir")
+    install -Ddvm$perm "$destdir"
+
+    relative_src=$(realpath -L --relative-to="$destdir" "$src")
+
+    ln -sfv "$relative_src" "$dest"
+
     shift
 done
