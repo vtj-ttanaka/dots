@@ -18,28 +18,63 @@ cdpath+=(~ ..(N-/) ~/github(N-/))
 HISTSIZE=10000
 SAVEHIST=$((HISTSIZE * 365))
 
+bindkey -e
+
+clear-screen-and-scrollback() {
+    echoti civis >"$TTY"
+    printf '%b' '\e[H\e[2J' >"$TTY"
+    zle .reset-prompt
+    zle -R
+    printf '%b' '\e[3J' >"$TTY"
+    echoti cnorm >"$TTY"
+}
+
+zle -N clear-screen-and-scrollback
+bindkey '^L' clear-screen-and-scrollback
+
+cd-undo() {
+    popd
+    zle reset-prompt
+    print
+    ls
+    zle reset-prompt
+}
+
+cd-parent() {
+    pushd ..
+    zle reset-prompt
+    print
+    ls
+    zle reset-prompt
+}
+
+zle -N cd-parent
+zle -N cd-undo
+bindkey '[1;3A' cd-parent
+bindkey '[1;3B' cd-undo
+
 () {
     local rc=$HOME/.antigen/antigen.zsh
     if [[ ! -f $rc ]]; then
-	curl -SsfLo $rc --create-dirs git.io/antigen
+        curl -SsfLo $rc --create-dirs git.io/antigen
     fi
     source $rc
 
     antigen bundles <<EOBUNDLES
-	zsh-users/zaw
-	zsh-users/zsh-autosuggestions
-	zsh-users/zsh-completions
-	zsh-users/zsh-syntax-highlighting
+        zsh-users/zaw
+        zsh-users/zsh-autosuggestions
+        zsh-users/zsh-completions
+        zsh-users/zsh-syntax-highlighting
 
-	sorin-ionescu/prezto modules/command-not-found
-	sorin-ionescu/prezto modules/completion
-	sorin-ionescu/prezto modules/history
+        sorin-ionescu/prezto modules/command-not-found
+        sorin-ionescu/prezto modules/completion
+        sorin-ionescu/prezto modules/history
 
-	mafredri/zsh-async
+        mafredri/zsh-async
 
-	Tarrasch/zsh-autoenv
+        Tarrasch/zsh-autoenv
 
-	vtj-ttanaka/pure@main
+        vtj-ttanaka/pure@main
 EOBUNDLES
 
     antigen apply
@@ -66,97 +101,6 @@ alias history='fc -lDi'
 
 setopt EXTENDED_GLOB
 setopt NULL_GLOB
-
-mkcd() { install -Ddm755 "$1" && cd "$1" }
-
-alias relogin='exec $SHELL -l'
-alias ls='ls -Xv --color=auto --group-directories-first'
-alias cp='cp -v'
-alias mv='mv -v'
-alias rm='rm -v'
-alias mkdir='mkdir -v'
-alias grep='grep --color=auto'
-
-if (( $+commands[anyenv] )); then
-    () {
-	local prefix=$(anyenv root)
-	path+=($prefix/bin)
-	source <(anyenv init -)
-	local vf=$prefix/envs/tfenv/version
-	if (( $+commands[tfenv] )) && [[ -f $vf ]]; then
-	    autoload -U +X bashcompinit && bashcompinit
-	    local v=$(< $vf)
-	    complete -o nospace -C $prefix/envs/tfenv/versions/$v/terraform terraform
-	fi
-    }
-fi
-
-if (( $+commands[aws] )); then
-    :
-fi
-
-if (( $+commands[brew] )); then
-    () {
-	local prefix=$(brew --prefix)
-	path+=($prefix/bin(N-/) $prefix/sbin(N-/))
-	fpath+=($prefix/share/zsh/site-functions(N-/))
-	manpath+=($prefix/share/man(N-/))
-    }
-fi
-
-if (( $+commands[cargo] )); then
-    () {
-	local prefix=${CARGO_HOME:-$HOME/.cargo}
-	path+=($prefix/bin(N-/))
-    }
-fi
-
-if (( $+commands[emacsclient] )); then
-    alias emacs='emacsclient -t'
-fi
-
-if (( $+commands[gcloud] )); then
-    :
-fi
-
-if (( $+commands[go] )); then
-    () {
-	local prefix=${GOPATH:-$HOME/go}
-	path+=($prefix/bin(N-/))
-    }
-fi
-
-if (( $+commands[kubectl] )); then
-    :
-fi
-
-if (( $+commands[nnn] )); then
-    local plugdir=$HOME/.config/nnn/plugins
-    if [[ ! -f $plugdir/getplugs ]]; then
-        curl -SsfL https://raw.githubusercontent.com/jarun/nnn/master/plugins/getplugs | sh
-    fi
-
-    typeset -TUg NNN_BMS nnn_bms ';'
-    nnn_bms=()
-
-    typeset -TUg NNN_PLUG nnn_plug ';'
-    nnn_plug=(f:finder p:preview-tui)
-
-    export NNN_OPTS=ado \
-           NNN_OPENER=$plugdir/nuke \
-           NNN_ORDER= \
-           NNN_COLORS='1234' \
-           NNN_FCOLORS='c1e2272e006033f7c6d6abc4' \
-           NNN_TRASH=${commands[trash]:+1} \
-           NNN_TMPFILE='/tmp/.lastd'
-
-    alias nnn='nnn -Tv'
-fi
-
-
-
-
-
 
 autoload -Uz select-word-style
 select-word-style default
@@ -186,10 +130,94 @@ zcompilex ~/.zshrc
 
 () {
     while (( $# )); do
-	zcompilex $1
-	source $1
-	shift
+        zcompilex $1
+        source $1
+        shift
     done
 } ~/.zshrc.*~*.zwc
 
+mkcd() { install -Ddm755 "$1" && cd "$1" }
+
 alias relogin='exec $SHELL -l'
+alias ls='ls -Xv --color=auto --group-directories-first'
+alias cp='cp -v'
+alias mv='mv -v'
+alias rm='rm -v'
+alias mkdir='mkdir -v'
+alias grep='grep --color=auto'
+
+if (( $+commands[anyenv] )); then
+    () {
+        local prefix=$(anyenv root)
+        path+=($prefix/bin)
+        source <(anyenv init -)
+        local vf=$prefix/envs/tfenv/version
+        if (( $+commands[tfenv] )) && [[ -f $vf ]]; then
+            autoload -U +X bashcompinit && bashcompinit
+            local v=$(< $vf)
+            complete -o nospace -C $prefix/envs/tfenv/versions/$v/terraform terraform
+        fi
+    }
+fi
+
+if (( $+commands[aws] )); then
+    :
+fi
+
+if (( $+commands[brew] )); then
+    () {
+        local prefix=$(brew --prefix)
+        path+=($prefix/bin(N-/) $prefix/sbin(N-/))
+        fpath+=($prefix/share/zsh/site-functions(N-/))
+        manpath+=($prefix/share/man(N-/))
+    }
+fi
+
+if (( $+commands[cargo] )); then
+    () {
+        local prefix=${CARGO_HOME:-$HOME/.cargo}
+        path+=($prefix/bin(N-/))
+    }
+fi
+
+if (( $+commands[emacsclient] )); then
+    alias emacs='emacsclient -t'
+fi
+
+if (( $+commands[gcloud] )); then
+    export CLOUDSDK_ACTIVE_CONFIG_NAME=null
+fi
+
+if (( $+commands[go] )); then
+    () {
+        local prefix=${GOPATH:-$HOME/go}
+        path+=($prefix/bin(N-/))
+    }
+fi
+
+if (( $+commands[kubectl] )); then
+    :
+fi
+
+if (( $+commands[nnn] )); then
+    local plugdir=$HOME/.config/nnn/plugins
+    if [[ ! -f $plugdir/getplugs ]]; then
+        curl -SsfL https://raw.githubusercontent.com/jarun/nnn/master/plugins/getplugs | sh
+    fi
+
+    typeset -TUg NNN_BMS nnn_bms ';'
+    nnn_bms=()
+
+    typeset -TUg NNN_PLUG nnn_plug ';'
+    nnn_plug=(f:finder p:preview-tui)
+
+    export NNN_OPTS=ado \
+           NNN_OPENER=$plugdir/nuke \
+           NNN_ORDER= \
+           NNN_COLORS='1234' \
+           NNN_FCOLORS='c1e2272e006033f7c6d6abc4' \
+           NNN_TRASH=${commands[trash]:+1} \
+           NNN_TMPFILE='/tmp/.lastd'
+
+    alias nnn='nnn -Tv'
+fi
