@@ -1,8 +1,3 @@
-if (( $+commands[tmux] && ! $+TMUX && $+SSH_CONNECTION )); then
-    tmux has-session && exec tmux attach
-    exec tmux new
-fi
-
 typeset -Ug path
 path+=(~/bin(N-/) ~/.local/bin(N-/))
 
@@ -15,10 +10,42 @@ manpath+=(/usr/share/man(N-/))
 typeset -Ug cdpath
 cdpath+=(~ ..(N-/) ~/github(N-/))
 
-HISTSIZE=10000
-SAVEHIST=$((HISTSIZE * 365))
+
+if (( $+commands[tmux] && ! $+TMUX && $+SSH_CONNECTION )); then
+    tmux has-session && exec tmux attach
+    exec tmux new
+fi
+
+TRAPUSR1() { rehah }
+
+autoload -Uz bracketed-paste-url-magic
+zle -N bracketed-paste bracketed-paste-url-magic
+
+urlencode() {
+    if [[ "$1" == '-d' ]]; then
+        cat | sed 's/+/ /g; s/\%/\\x/g' | xargs -rd\\n printf '%b\n'
+    else
+        local c
+        cat | fold -b1 - | while read -r c; do
+            case $c in
+                [a-zA-Z0-9.~_-]) printf '%c' "$c" ;;
+                ' ') printf + ;;
+                *) printf '%%%.2X' "'$c" ;;
+            esac
+        done
+        echo
+    fi
+}
 
 bindkey -e
+
+ttyctl -f
+
+reset_broken_terminal() {
+    printf '%b' '\e[0m\e(B\e)0\017\e[?5l\e7\e[0;0r\e8'
+}
+
+precmd_functions+=(reset_broken_terminal)
 
 clear-screen-and-scrollback() {
     echoti civis >"$TTY"
@@ -32,26 +59,19 @@ clear-screen-and-scrollback() {
 zle -N clear-screen-and-scrollback
 bindkey '^L' clear-screen-and-scrollback
 
-cd-undo() {
-    popd
-    zle reset-prompt
-    print
-    ls
-    zle reset-prompt
-}
+HISTSIZE=10000
+SAVEHIST=$((HISTSIZE * 365))
 
-cd-parent() {
-    pushd ..
-    zle reset-prompt
-    print
-    ls
-    zle reset-prompt
-}
+bindkey '^P' history-beginning-search-backward
+bindkey '^N' history-beginning-search-forward
 
-zle -N cd-parent
-zle -N cd-undo
-bindkey '[1;3A' cd-parent
-bindkey '[1;3B' cd-undo
+setopt EXTENDED_GLOB
+setopt NULL_GLOB
+
+autoload -Uz select-word-style
+select-word-style default
+zstyle ':zle:*' word-chars ' _-./;@?'
+zstyle ':zle:*' word-style unspecified
 
 () {
     local rc=$HOME/.antigen/antigen.zsh
@@ -92,52 +112,32 @@ EOBUNDLES
     fi
 }
 
-bindkey -e
-
-bindkey '^P' history-beginning-search-backward
-bindkey '^N' history-beginning-search-forward
-
-alias history='fc -lDi'
-
-setopt EXTENDED_GLOB
-setopt NULL_GLOB
-
-autoload -Uz select-word-style
-select-word-style default
-zstyle ':zle:*' word-chars ' _-./;@?'
-zstyle ':zle:*' word-style unspecified
-
 autoload -Uz run-help
 if (( $+aliases[run-help] )); then
     unalias run-help
 fi
-alias help=run-help
-
-ttyctl -f
-
-reset_broken_terminal() {
-    printf '%b' '\e[0m\e(B\e)0\017\e[?5l\e7\e[0;0r\e8'
-}
-
-precmd_functions+=(reset_broken_terminal)
-
-zcompilex() {
-    local src=$1 zwc=$1.zwc
-    [[ ! -f $zwc || $src -nt $zwc ]] && zcompile $src
-}
-
-zcompilex ~/.zshrc
-
-() {
-    while (( $# )); do
-        zcompilex $1
-        source $1
-        shift
-    done
-} ~/.zshrc.*~*.zwc
 
 mkcd() { install -Ddm755 "$1" && cd "$1" }
 
+cd-undo() {
+    popd
+    zle .reset-prompt
+}
+
+cd-parent() {
+    if [[ $PWD == / ]]; then
+        return
+    fi
+    pushd ..
+    zle .reset-prompt
+}
+
+zle -N cd-parent
+zle -N cd-undo
+bindkey '[1;3A' cd-parent
+bindkey '[1;3B' cd-undo
+
+alias history='fc -lDi'
 alias relogin='exec $SHELL -l'
 alias ls='ls -Xv --color=auto --group-directories-first'
 alias cp='cp -v'
@@ -161,7 +161,7 @@ if (( $+commands[anyenv] )); then
 fi
 
 if (( $+commands[aws] )); then
-    :
+    unset AWS_PROFILE
 fi
 
 if (( $+commands[brew] )); then
@@ -171,6 +171,13 @@ if (( $+commands[brew] )); then
         fpath+=($prefix/share/zsh/site-functions(N-/))
         manpath+=($prefix/share/man(N-/))
     }
+    _brew() {
+        command brew "$@" || return
+        if (( $@[(I)install] || $@[(I)uninstall] || $@[(I)upgrade] )); then
+            pkill -USR1 zsh
+        fi
+    }
+    alias brew=_brew
 fi
 
 if (( $+commands[cargo] )); then
@@ -188,6 +195,14 @@ if (( $+commands[gcloud] )); then
     export CLOUDSDK_ACTIVE_CONFIG_NAME=null
 fi
 
+if (( $+commands[gh] )); then
+    source <(gh completion -s zsh)
+fi
+
+if (( $+commands[git] )); then
+    autoload -Uz run-help-git
+fi
+
 if (( $+commands[go] )); then
     () {
         local prefix=${GOPATH:-$HOME/go}
@@ -195,8 +210,17 @@ if (( $+commands[go] )); then
     }
 fi
 
+if (( $+commands[gpg] )); then
+    export GPG_TTY=$(tty)
+fi
+
+if (( $+commands[ip] )); then
+    autoload -Uz run-help-ip
+fi
+
 if (( $+commands[kubectl] )); then
-    :
+    unset KUBECONFIG
+    source <(kubectl completion zsh)
 fi
 
 if (( $+commands[nnn] )); then
@@ -220,4 +244,43 @@ if (( $+commands[nnn] )); then
            NNN_TMPFILE='/tmp/.lastd'
 
     alias nnn='nnn -Tv'
+fi
+
+if (( $+commands[openssl] )); then
+    autoload -Uz run-help-openssl
+fi
+
+if (( $+commands[stern] )); then
+    source <(stern --completion zsh)
+fi
+
+if (( $+commands[sudo] )); then
+    autoload -Uz run-help-sudo
+fi
+
+if (( $+commands[trash] )); then
+    alias rm='trash -v'
+fi
+
+if (( $+commands[qmk] )); then
+    qmkcf() { qmk compile -kb $1 -km $2 && qmk flash -kb $1 -km $2 }
+fi
+
+zcompilex() {
+    local src=$1 zwc=$1.zwc
+    [[ ! -f $zwc || $src -nt $zwc ]] && zcompile $src
+}
+
+zcompilex ~/.zshrc
+
+() {
+    while (( $# )); do
+        zcompilex $1
+        source $1
+        shift
+    done
+} ~/.zshrc.*~*.zwc
+
+if (( $+builtins[zprof] )); then
+    zprof
 fi
