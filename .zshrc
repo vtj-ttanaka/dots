@@ -263,7 +263,7 @@ if (( $+commands[trash] )); then
 fi
 
 if (( $+commands[qmk] )); then
-    qmkcf() { qmk compile -kb $1 -km $2 && qmk flash -kb $1 -km $2 }
+    :
 fi
 
 zcompilex() {
