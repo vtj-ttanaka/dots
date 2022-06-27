@@ -243,6 +243,10 @@ if (( $+commands[nnn] )); then
            NNN_TRASH=${commands[trash]:+1} \
            NNN_TMPFILE='/tmp/.lastd'
 
+    if (( $+DISPLAY )); then
+        export GUI=1
+    fi
+
     alias nnn='nnn -Tv'
 fi
 
