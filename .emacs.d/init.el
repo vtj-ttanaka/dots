@@ -206,7 +206,9 @@
   (whitespace-action . '(auto-cleanup)))
 
 (leaf xclip
-  :if (executable-find "xclip")
+  :if (or (executable-find "xclip")
+          (executable-find "xsel")
+          (executable-find "pbcopy"))
   :ensure t
   :hook (after-init-hook . xclip-mode))
 
