@@ -7,12 +7,13 @@ module.exports = {
     handlers: [
         {
             match: [
-                /^https?:\/\/meet\.google\.com\/.*$/,
-                /^https?:\/\/calendar\.google\.com\/.*$/,
-                /^https?:\/\/.*\.?aws\.amazon\.com\/.*$/,
-                /^https?:\/\/.*\.?datadoghq\.com\/.*$/,
-                /^https?:\/\/(www\.)?youtube\.com(\/.*)$/,
-                /^https?:\/\/.*\.signin\.aws\.amazon\.com\/.*$/,
+                /^https?:\/\/meet\.google\.com(\/.*)?$/,
+                /^https?:\/\/calendar\.google\.com(\/.*)?$/,
+                /^https?:\/\/.*\.?aws\.amazon\.com(\/.*)?$/,
+                /^https?:\/\/.*\.?datadoghq\.com(\/.*)?$/,
+                /^https?:\/\/.*\.?youtube\.com(\/.*)?$/,
+                /^https?:\/\/.*\.signin\.aws\.amazon\.com(\/.*)?$/,
+                /^https?:\/\/devops-blog\.virtualtech\.jp(\/.*)?$/,
             ],
             browser: "Firefox",
         },
