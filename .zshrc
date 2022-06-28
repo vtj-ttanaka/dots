@@ -2,19 +2,21 @@ typeset -Ug path
 path+=(~/bin(N-/) ~/.local/bin(N-/))
 
 typeset -Ug fpath
-fpath+=(/usr/share/zsh/site-functions(N-/))
+fpath+=(/usr/local/share/zsh/site-functions(N-/) /usr/share/zsh/site-functions(N-/))
 
 typeset -Ug manpath
-manpath+=(/usr/share/man(N-/))
+manpath+=(/usr/local/share/man(N-/) /usr/share/man(N-/))
 
 typeset -Ug cdpath
 cdpath+=(~ ..(N-/) ~/github(N-/))
-
 
 if (( $+commands[tmux] && ! $+TMUX && $+SSH_CONNECTION )); then
     tmux has-session && exec tmux attach
     exec tmux new
 fi
+
+bindkey -e
+
 
 TRAPUSR1() { rehah }
 
@@ -37,7 +39,7 @@ urlencode() {
     fi
 }
 
-bindkey -e
+
 
 ttyctl -f
 
