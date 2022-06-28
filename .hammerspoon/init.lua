@@ -32,12 +32,10 @@ event:start()
 
 local function handleGlobalAppEvent(name, event, app)
    if event == hs.application.watcher.activated then
-      -- local win = hs.window.focusedWindow()
-      -- local rect = win:frame()
-      -- local center = hs.geometry.rectMidPoint(rect)
-      -- hs.mouse.absolutePosition(center)
+      -- Set input method to en
       if name == "Hyper" then
          hs.eventtap.keyStroke({}, 0x66)
+      -- Set input method to ja
       elseif name == "Slack" then
          hs.eventtap.keyStroke({}, 0x68)
       end
