@@ -18,7 +18,7 @@ fi
 bindkey -e
 
 
-TRAPUSR1() { rehah }
+TRAPUSR1() { rehash }
 
 autoload -Uz bracketed-paste-url-magic
 zle -N bracketed-paste bracketed-paste-url-magic
