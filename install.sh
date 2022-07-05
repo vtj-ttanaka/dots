@@ -11,7 +11,7 @@ if [[ "${0##*/}" != 'install.sh' ]]; then
 fi
 
 dotsroot="${0%/*}"
-IFS=$'\n' set -- $(find "$dotsroot" -path "$dotsroot/.git" -prune -o ! -wholename "$0" -a ! -wholename "$dotsroot/README.md" -type f -printf '%P\n')
+IFS=$'\n' set -- $(find "$PWD" -path "$PWD/.git" -prune -o -type f -regextype egrep -not -regex "$PWD/(Brewfile|README.md|install.sh)" -printf '%P\n')
 
 while (( $# )); do
     dest="$HOME/$1"
