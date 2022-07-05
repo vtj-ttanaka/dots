@@ -106,6 +106,11 @@
       :config
       (leaf-keywords-init))))
 
+(leaf coffee-mode
+  :ensure t
+  :custom
+  (cofee-tab-width . 2))
+
 (leaf company
   :ensure t
   :bind (("C-c i" . company-complete))
