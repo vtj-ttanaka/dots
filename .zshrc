@@ -189,6 +189,10 @@ if (( $+commands[cargo] )); then
     }
 fi
 
+if (( $+commands[circleci] )); then
+    source <(circleci completion zsh)
+fi
+
 if (( $+commands[emacsclient] )); then
     alias emacs='emacsclient -t'
 fi
