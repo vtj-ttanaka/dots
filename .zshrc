@@ -252,6 +252,9 @@ if (( $+commands[nnn] )); then
     alias nnn='nnn -Tv'
 fi
 
+if (( $+commands[nvim] )); then
+fi
+
 if (( $+commands[openssl] )); then
     autoload -Uz run-help-openssl
 fi
