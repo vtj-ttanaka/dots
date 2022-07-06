@@ -39,8 +39,6 @@ urlencode() {
     fi
 }
 
-
-
 ttyctl -f
 
 reset_broken_terminal() {
@@ -227,6 +225,10 @@ fi
 if (( $+commands[kubectl] )); then
     unset KUBECONFIG
     source <(kubectl completion zsh)
+fi
+
+if (( $+commands[newsboat] )); then
+    alias newsboat='newsboat -qr'
 fi
 
 if (( $+commands[nnn] )); then
